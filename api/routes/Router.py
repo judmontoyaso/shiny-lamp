@@ -5,12 +5,12 @@ from ..db.queries import get_microbiome_all, get_taxonomy_all, get_microbiome_by
 router = APIRouter() 
 
 @router.get("/api/microbiome")
-async def get_microbiome_data(request):
+async def get_microbiome_data():
     data = get_microbiome_all()
     return JSONResponse(content={"data": data})
 
 @router.get("/api/taxonomy")
-async def get_taxonomy_data(request):
+async def get_taxonomy_data():
     data = get_taxonomy_all()
     return JSONResponse(content={"data": data})
 

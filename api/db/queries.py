@@ -1,7 +1,7 @@
 import pandas as pd
 from .session_manager import session_scope
-from ..models.microbiome import Microbiome
-from ..models.taxonomy import Taxonomy
+from ..models.base import Microbiome
+from ..models.base import Taxonomy
 
 # Consultas
 def get_taxonomy_all(limit=100):
