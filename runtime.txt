@@ -1,8 +1,0 @@
-
-runtime_content = "python-3.9"
-
-# Escribimos el contenido en un archivo llamado runtime.txt
-with open("/mnt/data/runtime.txt", "w") as file:
-    file.write(runtime_content)
-
-"/mnt/data/runtime.txt"
