@@ -10,13 +10,13 @@ export default function Home() {
     alphaShannon: number;
 }
 interface Data {
-  cecum: number[];
+  cecum: number[];  
   feces: number[];
   ileum: number[];
   // Add other properties as needed
 }
 
-const [data, setData] = React.useState<Data>({
+const [data, setData] = useState<Data>({
   cecum: [],
   feces: [],
   ileum: [],
@@ -55,14 +55,13 @@ const fetchData = async () => {
   }
 
   const groupedData = groupByAlphaShannon(data);
-  return groupedData;
+  setData(groupedData);
 };
 
 
-  useEffect(() => {
-    fetchData().then(datagroup => {
-    setData(datagroup)})
-    }, []);
+useEffect(() => {
+  fetchData();
+}, []);
    
 
   
@@ -83,17 +82,17 @@ const fetchData = async () => {
       },
       {
         y: data.ileum,
-  type: 'box',
-  name: 'Ileum'
-  }
+        type: 'box',
+        name: 'Ileum'
+      }
   ];
   
-  return (
-  <Plot
-  data={datagroup}
-  layout={{ width: 720, height: 440, title: 'Alpha Shannon E355' }}
-  />
-  );
+  // return (
+  // <Plot
+  // data={datagroup}
+  // layout={{ width: 720, height: 440, title: 'Alpha Shannon E355' }}
+  // />
+  // );
   };
   
 
@@ -101,8 +100,8 @@ const fetchData = async () => {
 
   return (
 <div>
-      <h1>Diversity</h1>
-      <BoxPlot />
+      {/* <h1>Diversity</h1>
+      <BoxPlot /> */}
     </div>
   );
 }

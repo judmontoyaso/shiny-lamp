@@ -30,5 +30,8 @@
     "tailwindcss": "3.3.2",
     "typescript": "5.0.4",
     "vercel": "^33.1.0"
+  },
+  "devDependencies": {
+    "@types/react-plotly.js": "^2.6.3"
   }
 }
