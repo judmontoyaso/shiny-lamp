@@ -24,7 +24,7 @@ const [data, setData] = useState<Data>({
 });
 
 const fetchData = async () => {
-  const response = await fetch('http://localhost:3000/api/featureCount/E355');
+  const response = await fetch('http://localhost:3000/api/featureCount/E349');
   const data: DataItem[] = await response.json();
 
   function groupByAlphaShannon(data: DataItem[]) {
@@ -87,12 +87,16 @@ useEffect(() => {
       }
   ];
   
-  // return (
-  // <Plot
-  // data={datagroup}
-  // layout={{ width: 720, height: 440, title: 'Alpha Shannon E355' }}
-  // />
-  // );
+  return (
+    <div>
+      
+
+      <Plot
+      data={datagroup}
+      layout={{ width: 720, height: 440, title: 'Alpha Shannon E355' }}
+      />
+    </div>
+  );
   };
   
 
@@ -100,8 +104,8 @@ useEffect(() => {
 
   return (
 <div>
-      {/* <h1>Diversity</h1>
-      <BoxPlot /> */}
+      <h1>Diversity</h1>
+      <BoxPlot />
     </div>
   );
 }
