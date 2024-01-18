@@ -30,23 +30,25 @@ class VerifyToken:
         self.jwks_client = jwt.PyJWKClient(jwks_url)
 
    
-    async def verify(self,
-                     security_scopes: SecurityScopes,
-                     token: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer())
-                     ):
+    async def verify(self, security_scopes: SecurityScopes, token: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer())):
         if token is None:
             raise UnauthenticatedException
 
-        # This gets the 'kid' from the passed token
+        # Imprime el token recibido para depuración
+        print("Token recibido:", token.credentials)
+
+        # Intenta obtener la clave de firma pública
         try:
-            signing_key = self.jwks_client.get_signing_key_from_jwt(
-                token.credentials
-            ).key
+            signing_key = self.jwks_client.get_signing_key_from_jwt(token.credentials).key
+            print("Clave de firma pública obtenida:", signing_key)
         except jwt.exceptions.PyJWKClientError as error:
+            print("Error obteniendo la clave de firma:", error)
             raise UnauthorizedException(str(error))
         except jwt.exceptions.DecodeError as error:
+            print("Error de decodificación al obtener la clave de firma:", error)
             raise UnauthorizedException(str(error))
 
+        # Intenta decodificar el payload del token
         try:
             payload = jwt.decode(
                 token.credentials,
@@ -55,8 +57,17 @@ class VerifyToken:
                 audience=self.config.auth0_api_audience,
                 issuer=self.config.auth0_issuer,
             )
+            print("Payload decodificado:", payload)
+        except jwt.ExpiredSignatureError as error:
+            print("Token expirado:", error)
+            raise UnauthorizedException("Token expirado")
+        except jwt.JWTClaimsError as error:
+            print("Error en las claims del token:", error)
+            raise UnauthorizedException("Error en las claims del token")
         except Exception as error:
+            print("Error general durante la decodificación del token:", error)
             raise UnauthorizedException(str(error))
-    
+        
         return payload
+
   

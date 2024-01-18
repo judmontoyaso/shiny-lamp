@@ -17,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <UserProvider>
-      <div><a href="/auth/login">Login</a></div>
+      <div><a href="/api/auth/login">Login</a></div>
 
       <body className={inter.className}>{children}</body></UserProvider>
     </html>
