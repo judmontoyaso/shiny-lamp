@@ -7,7 +7,7 @@ app = FastAPI()
 @app.on_event("startup")
 async def startup():
     app.state.redis = await aioredis.from_url(
-    url=f"redis://redis:6379",
+    url=f"redis://localhost:6379",
     decode_responses=True
 )
 

@@ -35,12 +35,12 @@ class VerifyToken:
             raise UnauthenticatedException
 
         # Imprime el token recibido para depuración
-        print("Token recibido:", token.credentials)
+        # print("Token recibido:", token.credentials)
 
         # Intenta obtener la clave de firma pública
         try:
             signing_key = self.jwks_client.get_signing_key_from_jwt(token.credentials).key
-            print("Clave de firma pública obtenida:", signing_key)
+            # print("Clave de firma pública obtenida:", signing_key)
         except jwt.exceptions.PyJWKClientError as error:
             print("Error obteniendo la clave de firma:", error)
             raise UnauthorizedException(str(error))
@@ -57,7 +57,7 @@ class VerifyToken:
                 audience=self.config.auth0_api_audience,
                 issuer=self.config.auth0_issuer,
             )
-            print("Payload decodificado:", payload)
+            # print("Payload decodificado:", payload)
         except jwt.ExpiredSignatureError as error:
             print("Token expirado:", error)
             raise UnauthorizedException("Token expirado")
