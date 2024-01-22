@@ -1,4 +1,0 @@
-AUTH0_DOMAIN='dev-wkm0tkdt.us.auth0.com'
-AUTH0_API_AUDIENCE='https://siwa.bio'
-AUTH0_ISSUER='https://dev-wkm0tkdt.us.auth0.com/'
-AUTH0_ALGORITHMS='RS256'
