@@ -1,7 +1,7 @@
 from fastapi import APIRouter, FastAPI, Depends, Security, Response
 from fastapi.responses import JSONResponse
 import json
-from ..db.queries import get_microbiome_all, get_taxonomy_all, get_microbiome_by_runid, get_featureCountExtendedView_all, get_featureCountExtendedView_by_project_id
+from ..db.queries import get_microbiome_all, get_taxonomy_all, get_microbiome_by_runid, get_featureCountExtendedView_all, get_featureCountExtendedView_by_project_id, get_projectid_all
 from ..auth0_utils import VerifyToken
 from ..redis_connection import get_redis
 
@@ -20,9 +20,9 @@ async def get_taxonomy_data(auth_result: str = Security(auth.verify), redis=Depe
 
 @router.get("/api/microbiome/{run_id}")
 async def read_microbiome(run_id: str, limit: int = 100, auth_result: str = Security(auth.verify), redis=Depends(get_redis)):
-        cache_key = "_".join(["microbiome_data", run_id])
-        data = await caching_data(cache_key , get_microbiome_by_runid, redis, run_id, limit)
-        return data
+    cache_key = "_".join(["microbiome_data", run_id])
+    data = await caching_data(cache_key , get_microbiome_by_runid, redis, run_id, limit)
+    return data
  
 @router.get("/api/featurecount")
 async def get_featurecount_data(response: Response, auth_result: str = Security(auth.verify), redis=Depends(get_redis)):
@@ -31,9 +31,25 @@ async def get_featurecount_data(response: Response, auth_result: str = Security(
 
 @router.get("/api/featurecount/{project_id}")
 async def read_microbiome(project_id: str, limit: int = 100,auth_result: str = Security(auth.verify), redis=Depends(get_redis)):
-        cache_key = "_".join(["featurecount", project_id])
-        data = await caching_data(cache_key , get_featureCountExtendedView_by_project_id, redis, project_id, limit)
-        return data
+    cache_key = "_".join(["featurecount", project_id])
+    data = await caching_data(cache_key , get_featureCountExtendedView_by_project_id, redis, project_id, limit)
+    return data
+
+
+@router.get("/api/projectid")
+async def get_featurecount_data(response: Response, auth_result: str = Security(auth.verify), redis=Depends(get_redis)):
+    # Obtener el JSONResponse de caching_data
+    response = await caching_data("projectid", get_projectid_all, redis)
+    
+    # Extraer los datos del contenido del JSONResponse
+    raw_data = response.body.decode('utf-8')  # Decodifica el cuerpo del response
+    data = json.loads(raw_data)['data']  # Carga los datos como un diccionario de Python
+
+    # Filtrar los datos para obtener únicos
+    unique_data = {obj['projectId']: obj for obj in data}.values()
+
+    return JSONResponse(content={"data": list(unique_data)})
+
 
 
 async def caching_data(cache_key, data_function, redis, *args, **kwargs):

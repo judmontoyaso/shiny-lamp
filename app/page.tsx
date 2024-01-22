@@ -1,146 +1,174 @@
+
 "use client"
 import { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
-import React from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
-import { getAccessToken, withApiAuthRequired } from '@auth0/nextjs-auth0';
 
 export default function Home() {
 
-  const { user, error, isLoading } = useUser();
-
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>{error.message}</div>;
-//   interface DataItem {
-  interface DataItem {
-    sampleLocation: string;
-    alphaShannon: number;
-}
-interface Data {
-  cecum: number[];  
-  feces: number[];
-  ileum: number[];
-  // Add other properties as needed
-}
-
-const [data, setData] = useState<Data>({
-  cecum: [],
-  feces: [],
-  ileum: [],
-  // Initialize other properties as needed
-});
-
-const fetchData = async () => {
-
-    const tokenResponse = await fetch('/api/authc/token');
-    if (!tokenResponse.ok) {
-      throw new Error('No se pudo obtener el token de acceso');
-    }else{"consulta de token realizada"}
-    console.log(tokenResponse)
-    const { accessToken } = await tokenResponse.json();
-    console.log(accessToken)
-    // Realizar la solicitud a tu API FastAPI con el token
-
-
-    const response = await fetch('http://localhost:3000/api/featurecount/E349', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Respuesta no válida de la API');
-    }
-
-
-
-  const data: DataItem[] = await response.json();
-console.log(data)
-  function groupByAlphaShannon(data: DataItem[]) {
-      const groups: Data = {
-          cecum: [],
-          feces: [],
-          ileum: [],
+    const { user } = useUser();
+    const [data, setData] = useState({ cecum: [], feces: [], ileum: [] });
+    const [projectIds, setProjectIds] = useState([]);
+    const [selectedProjectId, setSelectedProjectId] = useState('');
+    const [accessToken, setAccessToken] = useState(); 
+    const [tokenObtenido, setTokenObtenido] = useState(false);
+  
+    useEffect(() => {
+      const fetchToken = async () => {
+        try {
+          const response = await fetch('http://localhost:3000/api/authc/token', {
+           
+          });
+          const { accessToken } = await response.json();
+          setAccessToken(accessToken);
+          setTokenObtenido(true);
+        } catch (error) {
+          console.error('Error al obtener token:', error);
+        }
       };
+  
 
-      data.forEach((item: DataItem) => {
-          switch (item.sampleLocation) {
-              case 'cecum':
-                  groups.cecum.push(item.alphaShannon);
-                  break;
-              case 'feces':
-                  groups.feces.push(item.alphaShannon);
-                  break;
-              case 'ileum':
-                  groups.ileum.push(item.alphaShannon);
-                  break;
-              // Add other cases if needed
-              default:
-                  break;
+  
+      const fetchProjectIds = async () => {
+        try {
+          const response = await fetch('http://localhost:3000/api/projectid', {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+          if (!response.ok) {
+            throw new Error('Respuesta no válida al obtener projectIds');
           }
-      });
-
-      return groups;
-  }
-
-  const groupedData = groupByAlphaShannon(data);
-  setData(groupedData);
-};
-
-
-useEffect(() => {
-  fetchData();
-}, []);
+          const result = await response.json();
+          const ids = result.data
+          setProjectIds(ids);
+          if (ids && ids.length > 0) {
+            setSelectedProjectId(ids[0]); // Establece el selectedProjectId aquí
+            fetchData();
+          }
+         
+        } catch (error) {
+          console.error('Error al obtener projectIds:', error);
+        }
+      };
+  
+      fetchToken();
+      if (tokenObtenido) {
+      fetchProjectIds();}
+    }, [tokenObtenido]);
+  
+    useEffect(() => {
+      if (projectIds.length > 0) {
+        setSelectedProjectId(projectIds[0]);
+        console.log(selectedProjectId)
+      }
+    }, [projectIds]);
    
 
-  
-
-  const BoxPlot = () => {
-
-  
-    const datagroup = [
-      {
-        y: data.cecum,
-        type: 'box',
-        name: 'Cecum'
-      },
-      {
-        y: data.feces,
-        type: 'box',
-        name: 'Feces'
-      },
-      {
-        y: data.ileum,
-        type: 'box',
-        name: 'Ileum'
+    useEffect(() => {
+      if (selectedProjectId) {
+        fetchData();
       }
-  ];
-  
-  return (
-    <div>
-      
+    }, [selectedProjectId]);
 
-      {/* <Plot
-      data={datagroup}
-      layout={{ width: 720, height: 440, title: 'Alpha Shannon E355' }}
-      /> */}
-    </div>
-  );
+const fetchData = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/featurecount/${selectedProjectId}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Respuesta no válida de la API');
+      }
+
+      const resp = await response.json();
+      const newData = groupByAlphaShannon(resp.data);
+      setData(newData);
+    } catch (error) {
+      console.error('Error al obtener datos:', error);
+    }
+  };
+
+  function groupByAlphaShannon(data:any) {
+    const groups = { cecum: [], feces: [], ileum: [] };
+    data.forEach(item => {
+      switch (item.sampleLocation) {
+        case 'cecum':
+          groups.cecum.push(item.alphaShannon);
+          break;
+        case 'feces':
+          groups.feces.push(item.alphaShannon);
+          break;
+        case 'ileum':
+          groups.ileum.push(item.alphaShannon);
+          break;
+        // Agrega otros casos si es necesario
+        default:
+          break;
+      }
+    });
+    return groups;
+  }
+
+  const handleProjectIdChange = (event:any) => {
+    setSelectedProjectId(event.target.value);
   };
   
-
-  
-
+console.log(projectIds)
   return (
     user && (
       <>
-      <div>
-        <h2>{user.name}</h2>
-        <p>{user.email}</p>
+        <div>
+          <h2>{user.name}</h2>
+          <p>{user.email}</p>
+        </div>
+        {/* Menú desplegable para seleccionar projectId */}
+        <div>
+        <label htmlFor="project-select">Seleccione un Proyecto:</label>
+        <select id="project-select" value={selectedProjectId} onChange={handleProjectIdChange}>
+          {projectIds.map((project:any) => (
+            <option key={project.projectId} value={project.projectId}>
+              {project.projectId}
+            </option>
+          ))}
+        </select>
       </div>
-<div>
-      <h1>Diversity</h1>
-      <BoxPlot />
-    </div>
+        <div>
+          <h1>Diversity</h1>
+          <BoxPlot data={data} />
+        </div>
       </>
-  ))}
+    )
+  );
+}
+
+function BoxPlot({ data }:any) {
+  const datagroup = [
+    {
+      y: data.cecum,
+      type: 'box',
+      name: 'Cecum'
+    },
+    {
+      y: data.feces,
+      type: 'box',
+      name: 'Feces'
+    },
+    {
+      y: data.ileum,
+      type: 'box',
+      name: 'Ileum'
+    }
+  ];
+
+  return (
+    <div>
+      <Plot
+        data={datagroup}
+        layout={{ width: 720, height: 440, title: 'Alpha Shannon Diversity' }}
+      />
+    </div>
+  );
+}
